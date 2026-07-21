@@ -43,6 +43,8 @@ class AppRepository(private val database: AppDatabase) {
 
     suspend fun deleteTodo(todo: TodoEntity) = dao.deleteTodo(todo)
 
+    suspend fun deleteSession(session: FocusSessionEntity) = dao.deleteSession(session)
+
     suspend fun startTimer(todo: TodoEntity): ActiveTimerEntity = timerMutex.withLock {
         require(todo.timerMode != TimerMode.UNTIMED)
         dao.getActiveTimer() ?: ActiveTimerEntity(

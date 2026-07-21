@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -32,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
@@ -48,7 +48,7 @@ fun AwesomeTodoApp(vm: AppViewModel = viewModel()) {
     val state by vm.uiState.collectAsState()
     val context = LocalContext.current
     val view = LocalView.current
-    val darkTheme = isSystemInDarkTheme()
+    val darkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val snackbar = remember { SnackbarHostState() }
     var selectedTab by remember { mutableIntStateOf(0) }
     var showHistory by remember { mutableStateOf(false) }
@@ -85,7 +85,7 @@ fun AwesomeTodoApp(vm: AppViewModel = viewModel()) {
 
     when {
         state.activeTimer != null -> TimerScreen(state.activeTimer!!, vm::pauseTimer, vm::resumeTimer, vm::finishEarly, vm::abandon)
-        showHistory -> HistoryScreen(state.sessions, onBack = { showHistory = false })
+        showHistory -> HistoryScreen(state.sessions, onBack = { showHistory = false }, onDelete = vm::deleteSession)
         else -> Scaffold(
             modifier = Modifier.fillMaxSize(),
             contentWindowInsets = WindowInsets(0, 0, 0, 0),

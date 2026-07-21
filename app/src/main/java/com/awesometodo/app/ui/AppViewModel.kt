@@ -12,6 +12,7 @@ import com.awesometodo.app.data.ActiveTimerEntity
 import com.awesometodo.app.data.FocusSessionEntity
 import com.awesometodo.app.data.TodoEntity
 import com.awesometodo.app.data.TimerMode
+import com.awesometodo.app.data.ThemeMode
 import com.awesometodo.app.stats.Statistics
 import com.awesometodo.app.stats.SummaryStats
 import com.awesometodo.app.timer.FocusTimerService
@@ -43,6 +44,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val messages = MutableSharedFlow<String>(extraBufferCapacity = 4)
     private val _updateResult = MutableStateFlow<UpdateResult?>(null)
     val updateResult = _updateResult.asStateFlow()
+    val themeMode = app.settingsRepository.themeMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.SYSTEM)
 
     val uiState: StateFlow<AppUiState> = combine(repository.todos, repository.sessions, repository.activeTimer) { todos, sessions, active ->
         AppUiState(todos, sessions, active, Statistics.summary(sessions))
@@ -55,6 +58,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setCompleted(todo: TodoEntity, completed: Boolean) = viewModelScope.launch { repository.setCompleted(todo, completed) }
     fun deleteTodo(todo: TodoEntity) = viewModelScope.launch { repository.deleteTodo(todo) }
+    fun deleteSession(session: FocusSessionEntity) = viewModelScope.launch { repository.deleteSession(session) }
+    fun setThemeMode(mode: ThemeMode) = viewModelScope.launch { app.settingsRepository.setThemeMode(mode) }
 
     fun startTimer(todo: TodoEntity) = viewModelScope.launch {
         if (todo.timerMode == TimerMode.UNTIMED) {

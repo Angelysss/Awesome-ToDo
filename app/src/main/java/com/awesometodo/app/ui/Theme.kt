@@ -8,6 +8,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
+import com.awesometodo.app.data.ThemeMode
 
 private val LightColors = lightColorScheme(
     primary = Color(0xFF147D9E), secondary = Color(0xFF4F6F78), tertiary = Color(0xFF725A8C),
@@ -34,9 +35,14 @@ private val CompactTypography = Typography(
 )
 
 @Composable
-fun AwesomeTodoTheme(content: @Composable () -> Unit) {
+fun AwesomeTodoTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, content: @Composable () -> Unit) {
+    val useDarkColors = when (themeMode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
     MaterialTheme(
-        colorScheme = if (isSystemInDarkTheme()) DarkColors else LightColors,
+        colorScheme = if (useDarkColors) DarkColors else LightColors,
         typography = CompactTypography,
         content = content,
     )

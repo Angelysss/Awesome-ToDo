@@ -6,6 +6,8 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.awesometodo.app.stats.Statistics
+import com.awesometodo.app.stats.SummaryStats
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -96,6 +98,31 @@ class AppDatabaseTest {
         assertEquals(active.todoId, repeatedStart.todoId)
         assertEquals("one", database.appDao().getActiveTimer()!!.todoId)
         assertFalse(database.appDao().getActiveTimer()!!.todoId == second.id)
+    }
+
+    @Test fun deletingHistorySessionRemovesItFromStatistics() = runTest {
+        val dao = database.appDao()
+        val repository = AppRepository(database)
+        val session = FocusSessionEntity(
+            id = "delete-me",
+            todoId = "todo",
+            todoTitle = "阅读",
+            plannedSeconds = 1_500,
+            actualFocusSeconds = 1_500,
+            creditedMinutes = 25,
+            outcome = SessionOutcome.NATURAL_COMPLETION,
+            countsTowardStats = true,
+            startedAt = 1,
+            endedAt = 2,
+            endedLocalDate = "2026-07-21",
+            endedZoneId = "Asia/Shanghai",
+        )
+        dao.insertSession(session)
+        assertEquals(SummaryStats(1, 25, 25), Statistics.summary(dao.getSessions()))
+
+        repository.deleteSession(session)
+
+        assertEquals(SummaryStats(0, 0, 0), Statistics.summary(dao.getSessions()))
     }
 
     companion object { private const val MIGRATION_DB = "migration-v1-v2" }

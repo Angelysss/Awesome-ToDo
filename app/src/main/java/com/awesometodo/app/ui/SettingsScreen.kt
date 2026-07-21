@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -33,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.awesometodo.app.BuildConfig
+import com.awesometodo.app.data.ThemeMode
 import com.awesometodo.app.update.UpdateResult
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -43,6 +45,7 @@ private const val REPOSITORY_URL = "https://github.com/Angelysss/Awesome-ToDo"
 internal fun SettingsScreen(vm: AppViewModel, backupEnabled: Boolean, padding: PaddingValues) {
     val context = LocalContext.current
     val updateResult by vm.updateResult.collectAsState()
+    val themeMode by vm.themeMode.collectAsState()
     var pendingImport by remember { mutableStateOf<Uri?>(null) }
 
     fun openUrl(url: String) {
@@ -64,6 +67,26 @@ internal fun SettingsScreen(vm: AppViewModel, backupEnabled: Boolean, padding: P
             contentPadding = PaddingValues(12.dp, 12.dp, 12.dp, 20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            item {
+                SectionCard("外观") {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(
+                            ThemeMode.SYSTEM to "跟随系统",
+                            ThemeMode.LIGHT to "浅色",
+                            ThemeMode.DARK to "深色",
+                        ).forEach { (mode, label) ->
+                            FilterChip(
+                                selected = themeMode == mode,
+                                onClick = { vm.setThemeMode(mode) },
+                                label = {
+                                    Text(label, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+            }
             item {
                 SectionCard("数据备份") {
                     Text("备份包含待办、历史记录和设置；恢复会整体替换当前数据。", color = MaterialTheme.colorScheme.onSurfaceVariant)

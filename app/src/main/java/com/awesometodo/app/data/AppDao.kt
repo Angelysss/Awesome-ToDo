@@ -42,6 +42,9 @@ interface AppDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSession(session: FocusSessionEntity)
 
+    @Delete
+    suspend fun deleteSession(session: FocusSessionEntity)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTodos(todos: List<TodoEntity>)
 
