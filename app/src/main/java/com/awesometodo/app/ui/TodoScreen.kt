@@ -117,11 +117,11 @@ private fun TodoCard(todo: TodoEntity, todayCount: Int, onStart: (TodoEntity) ->
     val colors = cardThemes[todo.themeId.coerceIn(0, cardThemes.lastIndex)]
     Box(
         Modifier.fillMaxWidth().height(72.dp).clip(RoundedCornerShape(15.dp))
-            .background(Brush.linearGradient(colors)).clickable(onClick = onMenu).padding(horizontal = 12.dp, vertical = 6.dp)
+            .background(Brush.linearGradient(colors)).clickable(onClick = onMenu).padding(horizontal = 14.dp, vertical = 5.dp)
     ) {
         Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             Column(
-                modifier = Modifier.weight(1f).fillMaxSize(),
+                modifier = Modifier.weight(1f).fillMaxHeight().padding(top = 3.dp, bottom = 1.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
@@ -132,23 +132,23 @@ private fun TodoCard(todo: TodoEntity, todayCount: Int, onStart: (TodoEntity) ->
                 Text(
                     modeLabel(todo),
                     color = Color.White.copy(alpha = .88f),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
             Box(
-                modifier = Modifier.width(96.dp).fillMaxHeight(),
+                modifier = Modifier.width(108.dp).fillMaxHeight(),
             ) {
                 Button(
                     onClick = { onStart(todo) },
-                    modifier = Modifier.height(30.dp).align(Alignment.Center),
+                    modifier = Modifier.height(30.dp).align(Alignment.CenterEnd),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = colors.first()),
                 ) { Text("开始", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) }
                 Text(
                     if (todo.timerMode == TimerMode.UNTIMED) "今日完成 ${todayCount} 次" else "今日专注 ${todayCount} 次",
                     color = Color.White.copy(alpha = .88f),
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.align(Alignment.BottomCenter),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.BottomEnd),
                 )
             }
         }
