@@ -48,14 +48,26 @@ internal fun GradientHeader(title: String, subtitle: String, action: String? = n
 }
 
 @Composable
-internal fun SectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
+internal fun SectionCard(
+    title: String,
+    compact: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(1.dp),
     ) {
-        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+        Column(
+            Modifier.fillMaxWidth().padding(if (compact) 10.dp else 14.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp),
+        ) {
+            Text(
+                title,
+                color = MaterialTheme.colorScheme.primary,
+                style = if (compact) MaterialTheme.typography.labelLarge else MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
             content()
         }
     }

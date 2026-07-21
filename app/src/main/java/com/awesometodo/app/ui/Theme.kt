@@ -21,16 +21,16 @@ private val DarkColors = darkColorScheme(
 private val CompactTypography = Typography(
     headlineLarge = Typography().headlineLarge.copy(fontSize = 27.sp, lineHeight = 34.sp),
     headlineMedium = Typography().headlineMedium.copy(fontSize = 23.sp, lineHeight = 29.sp),
-    headlineSmall = Typography().headlineSmall.copy(fontSize = 19.sp, lineHeight = 25.sp),
+    headlineSmall = Typography().headlineSmall.copy(fontSize = 20.sp, lineHeight = 26.sp),
     titleLarge = Typography().titleLarge.copy(fontSize = 18.sp, lineHeight = 24.sp),
-    titleMedium = Typography().titleMedium.copy(fontSize = 15.sp, lineHeight = 21.sp),
-    titleSmall = Typography().titleSmall.copy(fontSize = 13.sp, lineHeight = 18.sp),
-    bodyLarge = Typography().bodyLarge.copy(fontSize = 15.sp, lineHeight = 21.sp),
+    titleMedium = Typography().titleMedium.copy(fontSize = 16.sp, lineHeight = 22.sp),
+    titleSmall = Typography().titleSmall.copy(fontSize = 14.sp, lineHeight = 19.sp),
+    bodyLarge = Typography().bodyLarge.copy(fontSize = 14.sp, lineHeight = 20.sp),
     bodyMedium = Typography().bodyMedium.copy(fontSize = 13.sp, lineHeight = 19.sp),
     bodySmall = Typography().bodySmall.copy(fontSize = 11.sp, lineHeight = 16.sp),
     labelLarge = Typography().labelLarge.copy(fontSize = 13.sp, lineHeight = 18.sp),
     labelMedium = Typography().labelMedium.copy(fontSize = 11.sp, lineHeight = 16.sp),
-    labelSmall = Typography().labelSmall.copy(fontSize = 10.sp, lineHeight = 14.sp),
+    labelSmall = Typography().labelSmall.copy(fontSize = 9.sp, lineHeight = 13.sp),
 )
 
 @Composable

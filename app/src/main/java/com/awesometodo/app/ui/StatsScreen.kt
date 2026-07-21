@@ -91,7 +91,7 @@ internal fun StatsScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item {
-                SectionCard("累计专注") {
+                SectionCard("累计专注", compact = true) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                         Metric("次数", summary.count.toString())
                         Metric("时长", "${summary.minutes} 分")
@@ -100,7 +100,7 @@ internal fun StatsScreen(
                 }
             }
             item {
-                SectionCard("今日专注 · $today") {
+                SectionCard("今日专注 · $today", compact = true) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                         Metric("次数", todaySessions.size.toString())
                         Metric("时长", "${todaySessions.sumOf { it.creditedMinutes }} 分")
@@ -175,8 +175,8 @@ internal fun StatsScreen(
 @Composable
 private fun Metric(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
     }
 }
 

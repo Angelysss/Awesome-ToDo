@@ -18,7 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -106,8 +106,8 @@ fun AwesomeTodoApp(vm: AppViewModel = viewModel()) {
             },
             floatingActionButton = {
                 if (selectedTab == 0) {
-                    SmallFloatingActionButton(onClick = { editorTodo = null; showEditor = true }) {
-                        Text("＋", style = MaterialTheme.typography.titleLarge)
+                    FloatingActionButton(onClick = { editorTodo = null; showEditor = true }) {
+                        Text("＋", style = MaterialTheme.typography.headlineSmall)
                     }
                 }
             },

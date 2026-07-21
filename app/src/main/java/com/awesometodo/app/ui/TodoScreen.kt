@@ -7,12 +7,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -67,7 +68,7 @@ internal fun TodoScreen(
         GradientHeader("待办", "把注意力留给真正重要的事")
         if (sorted.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
-                Text("点击右上角 ＋ 创建第一项待办", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("点击右下角 ＋ 添加一个吧", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(
@@ -115,29 +116,39 @@ internal fun TodoScreen(
 private fun TodoCard(todo: TodoEntity, todayCount: Int, onStart: (TodoEntity) -> Unit, onMenu: () -> Unit) {
     val colors = cardThemes[todo.themeId.coerceIn(0, cardThemes.lastIndex)]
     Box(
-        Modifier.fillMaxWidth().height(90.dp).clip(RoundedCornerShape(16.dp))
-            .background(Brush.linearGradient(colors)).clickable(onClick = onMenu).padding(horizontal = 14.dp, vertical = 10.dp)
+        Modifier.fillMaxWidth().height(72.dp).clip(RoundedCornerShape(15.dp))
+            .background(Brush.linearGradient(colors)).clickable(onClick = onMenu).padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
-        Column(Modifier.fillMaxSize()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+            Column(
+                modifier = Modifier.weight(1f).fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
                 Text(
                     todo.title, color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
                     textDecoration = if (todo.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
-                    modifier = Modifier.weight(1f), maxLines = 1,
+                    maxLines = 1,
                 )
+                Text(
+                    modeLabel(todo),
+                    color = Color.White.copy(alpha = .88f),
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+            Box(
+                modifier = Modifier.width(96.dp).fillMaxHeight(),
+            ) {
                 Button(
                     onClick = { onStart(todo) },
-                    modifier = Modifier.height(36.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    modifier = Modifier.height(30.dp).align(Alignment.Center),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = colors.first()),
-                ) { Text("开始") }
-            }
-            Spacer(Modifier.weight(1f))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(modeLabel(todo), color = Color.White.copy(alpha = .92f), fontWeight = FontWeight.SemiBold)
+                ) { Text("开始", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) }
                 Text(
                     if (todo.timerMode == TimerMode.UNTIMED) "今日完成 ${todayCount} 次" else "今日专注 ${todayCount} 次",
-                    color = Color.White.copy(alpha = .92f), fontWeight = FontWeight.SemiBold,
+                    color = Color.White.copy(alpha = .88f),
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.align(Alignment.BottomCenter),
                 )
             }
         }
