@@ -15,9 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -114,7 +115,13 @@ internal fun StatsScreen(
                             FilterChip(
                                 selected = rangeMode == mode,
                                 onClick = { rangeMode = mode },
-                                label = { Text(mode.label) },
+                                label = {
+                                    Text(
+                                        mode.label,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    )
+                                },
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -143,8 +150,7 @@ internal fun StatsScreen(
                     if (rangeMode == RangeMode.CUSTOM) {
                         Text(periodLabel, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    FocusPieChart(pie)
-                    Button(onClick = onHistory, modifier = Modifier.fillMaxWidth().height(42.dp)) { Text("历史记录") }
+                    FocusPieChart(pie, onHistory)
                 }
             }
             item {
@@ -181,37 +187,48 @@ private fun Metric(label: String, value: String) {
 }
 
 @Composable
-private fun FocusPieChart(slices: List<PieSlice>) {
+private fun FocusPieChart(slices: List<PieSlice>, onHistory: () -> Unit) {
     val total = slices.sumOf { it.minutes }
     val centerColor = MaterialTheme.colorScheme.surface
     if (total == 0) {
         Box(Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
             Text("这个时段还没有有效专注", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        return
+    } else {
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Canvas(Modifier.size(150.dp)) {
+                var startAngle = -90f
+                slices.forEachIndexed { index, slice ->
+                    val sweep = slice.minutes.toFloat() / total * 360f
+                    drawArc(pieColors[index % pieColors.size], startAngle, sweep, true)
+                    startAngle += sweep
+                }
+                drawCircle(color = centerColor, radius = size.minDimension * .22f)
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("总计", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("$total 分", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            }
+        }
     }
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.size(150.dp)) {
-            var startAngle = -90f
-            slices.forEachIndexed { index, slice ->
-                val sweep = slice.minutes.toFloat() / total * 360f
-                drawArc(pieColors[index % pieColors.size], startAngle, sweep, true)
-                startAngle += sweep
-            }
-            drawCircle(color = centerColor, radius = size.minDimension * .22f)
-        }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("总计", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("$total 分", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        FilledTonalButton(
+            onClick = onHistory,
+            modifier = Modifier.width(132.dp).height(34.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+        ) {
+            Text("历史记录", style = MaterialTheme.typography.labelMedium)
         }
     }
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        slices.forEachIndexed { index, slice ->
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(10.dp).background(pieColors[index % pieColors.size], CircleShape))
-                Spacer(Modifier.size(8.dp))
-                Text(slice.title, modifier = Modifier.weight(1f), maxLines = 1)
-                Text("${slice.minutes} 分 · ${(slice.minutes * 100f / total).roundToInt()}%", fontWeight = FontWeight.SemiBold)
+    if (total > 0) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            slices.forEachIndexed { index, slice ->
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(10.dp).background(pieColors[index % pieColors.size], CircleShape))
+                    Spacer(Modifier.size(8.dp))
+                    Text(slice.title, modifier = Modifier.weight(1f), maxLines = 1)
+                    Text("${slice.minutes} 分 · ${(slice.minutes * 100f / total).roundToInt()}%", fontWeight = FontWeight.SemiBold)
+                }
             }
         }
     }

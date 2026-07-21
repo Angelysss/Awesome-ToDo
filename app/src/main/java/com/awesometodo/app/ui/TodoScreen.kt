@@ -37,11 +37,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.awesometodo.app.data.FocusSessionEntity
 import com.awesometodo.app.data.SessionOutcome
@@ -126,13 +127,23 @@ private fun TodoCard(todo: TodoEntity, todayCount: Int, onStart: (TodoEntity) ->
             ) {
                 Text(
                     todo.title, color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
-                    textDecoration = if (todo.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
+                    modifier = Modifier.drawWithContent {
+                        drawContent()
+                        if (todo.isCompleted) {
+                            drawLine(
+                                color = Color.Black,
+                                start = Offset(0f, size.height * .52f),
+                                end = Offset(size.width, size.height * .52f),
+                                strokeWidth = 1.5.dp.toPx(),
+                            )
+                        }
+                    },
                     maxLines = 1,
                 )
                 Text(
                     modeLabel(todo),
                     color = Color.White.copy(alpha = .88f),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                 )
             }
             Box(

@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -51,10 +52,10 @@ internal fun TimerScreen(active: ActiveTimerEntity, onPause: () -> Unit, onResum
 
     val actual = TimerPolicy.focusedSeconds(active, now)
     val display = if (active.timerMode == TimerMode.COUNT_UP) actual else TimerPolicy.remainingSeconds(active, now)
-    val progress = if (active.timerMode == TimerMode.COUNT_UP) (actual % 3600L) / 3600f
-    else 1f - display.toFloat() / active.plannedSeconds.coerceAtLeast(1).toFloat()
+    val progress = 1f - display.toFloat() / active.plannedSeconds.coerceAtLeast(1).toFloat()
     val creditHint = if (actual <= 600) "现在结束将保留记录，但不计入专注统计" else "现在结束将计入 ${actual / 60} 分钟"
-    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    val deepRingColor = Color(0xFF147D9E)
+    val lightProgressColor = Color(0xFF8FD9EE)
     val progressColor = MaterialTheme.colorScheme.primary
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -68,8 +69,16 @@ internal fun TimerScreen(active: ActiveTimerEntity, onPause: () -> Unit, onResum
             Spacer(Modifier.weight(.5f))
             Box(Modifier.size(220.dp), contentAlignment = Alignment.Center) {
                 Canvas(Modifier.fillMaxSize()) {
-                    drawCircle(trackColor, style = Stroke(18.dp.toPx()))
-                    drawArc(progressColor, -90f, 360f * progress.coerceIn(0f, 1f), false, style = Stroke(18.dp.toPx(), cap = StrokeCap.Round))
+                    drawCircle(deepRingColor, style = Stroke(18.dp.toPx()))
+                    if (active.timerMode == TimerMode.COUNTDOWN) {
+                        drawArc(
+                            lightProgressColor,
+                            -90f,
+                            360f * progress.coerceIn(0f, 1f),
+                            false,
+                            style = Stroke(18.dp.toPx(), cap = StrokeCap.Round),
+                        )
+                    }
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(formatTimer(display), fontSize = 40.sp, fontWeight = FontWeight.Bold)
