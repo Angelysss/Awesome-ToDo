@@ -13,9 +13,14 @@ class TodoFlowTest {
 
     @Test fun createTodoFromMainScreen() {
         rule.onNodeWithText("＋").performClick()
-        rule.onNodeWithText("待办标题").performTextInput("完成测试")
+        rule.onNodeWithText("待办名称").performTextInput("完成测试")
         rule.onNodeWithText("5 分").performClick()
         rule.onNodeWithText("保存").performClick()
         rule.onNodeWithText("完成测试").assertExists()
+    }
+
+    @Test fun statisticsKeepsMonthlySection() {
+        rule.onNodeWithText("统计").performClick()
+        rule.onNodeWithText("月度专注统计", substring = true).assertExists()
     }
 }

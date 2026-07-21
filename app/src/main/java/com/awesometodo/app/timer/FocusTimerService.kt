@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.awesometodo.app.AwesomeTodoApplication
 import com.awesometodo.app.MainActivity
 import com.awesometodo.app.data.TimerStatus
+import com.awesometodo.app.data.TimerMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -52,9 +53,11 @@ class FocusTimerService : Service() {
                     stopSelf()
                     break
                 }
-                val remaining = TimerPolicy.remainingSeconds(active, System.currentTimeMillis())
-                startForeground(ONGOING_ID, ongoingNotification(active.todoTitle, remaining, active.status))
-                if (remaining == 0L) {
+                val now = System.currentTimeMillis()
+                val remaining = TimerPolicy.remainingSeconds(active, now)
+                val displaySeconds = if (active.timerMode == TimerMode.COUNT_UP) TimerPolicy.focusedSeconds(active, now) else remaining
+                startForeground(ONGOING_ID, ongoingNotification(active.todoTitle, displaySeconds, active.status, active.timerMode))
+                if (active.timerMode == TimerMode.COUNTDOWN && remaining == 0L) {
                     if (repository.completeNaturally()) notifyFinished(active.todoTitle)
                     stopForeground(STOP_FOREGROUND_REMOVE)
                     stopSelf()
@@ -65,11 +68,15 @@ class FocusTimerService : Service() {
         }
     }
 
-    private fun ongoingNotification(title: String, seconds: Long, status: TimerStatus) =
+    private fun ongoingNotification(title: String, seconds: Long, status: TimerStatus, mode: TimerMode) =
         NotificationCompat.Builder(this, CHANNEL_ONGOING)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentTitle(title)
-            .setContentText(if (status == TimerStatus.PAUSED) "已暂停 · ${format(seconds)}" else "专注中 · ${format(seconds)}")
+            .setContentText(
+                if (status == TimerStatus.PAUSED) "已暂停 · ${format(seconds)}"
+                else if (mode == TimerMode.COUNT_UP) "正向计时 · ${format(seconds)}"
+                else "专注中 · ${format(seconds)}"
+            )
             .setContentIntent(openAppIntent())
             .setOnlyAlertOnce(true)
             .setOngoing(true)

@@ -3,6 +3,7 @@ package com.awesometodo.app.timer
 import com.awesometodo.app.data.ActiveTimerEntity
 import com.awesometodo.app.data.SessionOutcome
 import com.awesometodo.app.data.TimerStatus
+import com.awesometodo.app.data.TimerMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -34,8 +35,25 @@ class TimerPolicyTest {
         assertEquals(0, TimerPolicy.remainingSeconds(running, 999_999))
     }
 
-    private fun timer(status: TimerStatus, accumulated: Long, resumedAt: Long?) = ActiveTimerEntity(
+    @Test fun countUpUsesAnchorWithoutPlanCap() {
+        val running = timer(
+            status = TimerStatus.RUNNING,
+            accumulated = 30,
+            resumedAt = 1_000,
+            mode = TimerMode.COUNT_UP,
+        )
+        assertEquals(1_029, TimerPolicy.focusedSeconds(running, 1_000_000))
+        assertEquals(0, TimerPolicy.remainingSeconds(running, 1_000_000))
+    }
+
+    private fun timer(
+        status: TimerStatus,
+        accumulated: Long,
+        resumedAt: Long?,
+        mode: TimerMode = TimerMode.COUNTDOWN,
+    ) = ActiveTimerEntity(
         todoId = "todo", todoTitle = "test", plannedSeconds = 300,
         accumulatedFocusSeconds = accumulated, lastResumedAt = resumedAt, startedAt = 0, status = status,
+        timerMode = mode,
     )
 }

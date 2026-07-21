@@ -14,9 +14,12 @@ data class TodoEntity(
     val createdAt: Long,
     val updatedAt: Long,
     val completedAt: Long? = null,
+    val timerMode: TimerMode = TimerMode.COUNTDOWN,
 )
 
-enum class SessionOutcome { NATURAL_COMPLETION, EARLY_CREDITED, EARLY_UNCREDITED, ABANDONED }
+enum class TimerMode { COUNTDOWN, COUNT_UP, UNTIMED }
+
+enum class SessionOutcome { NATURAL_COMPLETION, EARLY_CREDITED, EARLY_UNCREDITED, ABANDONED, UNTIMED_COMPLETION }
 
 @Entity(tableName = "focus_sessions")
 data class FocusSessionEntity(
@@ -32,6 +35,7 @@ data class FocusSessionEntity(
     val endedAt: Long,
     val endedLocalDate: String,
     val endedZoneId: String,
+    val timerMode: TimerMode = TimerMode.COUNTDOWN,
 )
 
 enum class TimerStatus { RUNNING, PAUSED }
@@ -46,6 +50,7 @@ data class ActiveTimerEntity(
     val lastResumedAt: Long?,
     val startedAt: Long,
     val status: TimerStatus,
+    val timerMode: TimerMode = TimerMode.COUNTDOWN,
 )
 
 class AppTypeConverters {
@@ -53,4 +58,6 @@ class AppTypeConverters {
     @TypeConverter fun toOutcome(value: String): SessionOutcome = SessionOutcome.valueOf(value)
     @TypeConverter fun fromStatus(value: TimerStatus): String = value.name
     @TypeConverter fun toStatus(value: String): TimerStatus = TimerStatus.valueOf(value)
+    @TypeConverter fun fromMode(value: TimerMode): String = value.name
+    @TypeConverter fun toMode(value: String): TimerMode = TimerMode.valueOf(value)
 }

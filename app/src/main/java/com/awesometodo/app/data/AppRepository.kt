@@ -16,21 +16,22 @@ class AppRepository(private val database: AppDatabase) {
     val sessions = dao.observeSessions()
     val activeTimer = dao.observeActiveTimer()
 
-    suspend fun saveTodo(existingId: String?, title: String, minutes: Int, themeId: Int) {
+    suspend fun saveTodo(existingId: String?, title: String, minutes: Int, themeId: Int, timerMode: TimerMode) {
         require(title.isNotBlank())
-        require(minutes in 1..180)
+        require(timerMode != TimerMode.COUNTDOWN || minutes in 1..180)
         val now = System.currentTimeMillis()
         val existing = existingId?.let { dao.getTodo(it) }
         dao.upsertTodo(
             TodoEntity(
                 id = existing?.id ?: UUID.randomUUID().toString(),
                 title = title.trim(),
-                plannedMinutes = minutes,
+                plannedMinutes = if (timerMode == TimerMode.COUNTDOWN) minutes else 0,
                 themeId = themeId.coerceIn(0, 5),
                 isCompleted = existing?.isCompleted ?: false,
                 createdAt = existing?.createdAt ?: now,
                 updatedAt = now,
                 completedAt = existing?.completedAt,
+                timerMode = timerMode,
             )
         )
     }
@@ -42,16 +43,37 @@ class AppRepository(private val database: AppDatabase) {
 
     suspend fun deleteTodo(todo: TodoEntity) = dao.deleteTodo(todo)
 
+    suspend fun deleteSession(session: FocusSessionEntity) = dao.deleteSession(session)
+
     suspend fun startTimer(todo: TodoEntity): ActiveTimerEntity = timerMutex.withLock {
+        require(todo.timerMode != TimerMode.UNTIMED)
         dao.getActiveTimer() ?: ActiveTimerEntity(
             todoId = todo.id,
             todoTitle = todo.title,
-            plannedSeconds = todo.plannedMinutes * 60L,
+            plannedSeconds = if (todo.timerMode == TimerMode.COUNTDOWN) todo.plannedMinutes * 60L else 0L,
             accumulatedFocusSeconds = 0L,
             lastResumedAt = System.currentTimeMillis(),
             startedAt = System.currentTimeMillis(),
             status = TimerStatus.RUNNING,
+            timerMode = todo.timerMode,
         ).also { dao.upsertActiveTimer(it) }
+    }
+
+    suspend fun completeUntimed(todo: TodoEntity, now: Long = System.currentTimeMillis()) {
+        val zone = ZoneId.systemDefault()
+        database.withTransaction {
+            dao.insertSession(
+                FocusSessionEntity(
+                    id = UUID.randomUUID().toString(), todoId = todo.id, todoTitle = todo.title,
+                    plannedSeconds = 0, actualFocusSeconds = 0, creditedMinutes = 0,
+                    outcome = SessionOutcome.UNTIMED_COMPLETION, countsTowardStats = false,
+                    startedAt = now, endedAt = now,
+                    endedLocalDate = Instant.ofEpochMilli(now).atZone(zone).toLocalDate().toString(),
+                    endedZoneId = zone.id, timerMode = TimerMode.UNTIMED,
+                )
+            )
+            dao.upsertTodo(todo.copy(isCompleted = true, completedAt = todo.completedAt ?: now, updatedAt = now))
+        }
     }
 
     suspend fun pauseTimer(now: Long = System.currentTimeMillis()) = timerMutex.withLock {
@@ -86,6 +108,7 @@ class AppRepository(private val database: AppDatabase) {
 
     suspend fun completeNaturally(now: Long = System.currentTimeMillis()): Boolean = timerMutex.withLock {
         val active = dao.getActiveTimer() ?: return@withLock false
+        if (active.timerMode != TimerMode.COUNTDOWN) return@withLock false
         finalizeSession(
             active = active,
             actual = active.plannedSeconds,
@@ -122,6 +145,7 @@ class AppRepository(private val database: AppDatabase) {
                     endedAt = endedAt,
                     endedLocalDate = date,
                     endedZoneId = zone.id,
+                    timerMode = active.timerMode,
                 )
             )
             dao.clearActiveTimer()

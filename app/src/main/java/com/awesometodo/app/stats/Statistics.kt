@@ -3,9 +3,11 @@ package com.awesometodo.app.stats
 import com.awesometodo.app.data.FocusSessionEntity
 import java.time.LocalDate
 import java.time.YearMonth
+import com.awesometodo.app.data.TimerMode
 
 data class SummaryStats(val count: Int, val minutes: Int, val activeDayAverage: Int)
 data class ChartPoint(val label: String, val minutes: Int)
+data class PieSlice(val key: String, val title: String, val minutes: Int)
 
 object Statistics {
     fun summary(sessions: List<FocusSessionEntity>): SummaryStats {
@@ -35,4 +37,14 @@ object Statistics {
             ChartPoint("${month}月", credited.filter { it.endedLocalDate.startsWith(prefix) }.sumOf { it.creditedMinutes })
         }
     }
+
+    fun pieByTodo(sessions: List<FocusSessionEntity>, start: LocalDate, end: LocalDate): List<PieSlice> = sessions
+        .filter {
+            it.countsTowardStats && it.timerMode != TimerMode.UNTIMED &&
+                LocalDate.parse(it.endedLocalDate).let { date -> !date.isBefore(start) && !date.isAfter(end) }
+        }
+        .groupBy { "${it.todoId ?: "deleted"}:${it.todoTitle}" }
+        .map { (key, values) -> PieSlice(key, values.first().todoTitle, values.sumOf { it.creditedMinutes }) }
+        .filter { it.minutes > 0 }
+        .sortedByDescending { it.minutes }
 }
