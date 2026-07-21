@@ -116,7 +116,7 @@ fun AwesomeTodoApp(vm: AppViewModel = viewModel()) {
                 0 -> TodoScreen(
                     todos = state.todos, sessions = state.sessions, padding = padding, onStart = ::start,
                     onEdit = { editorTodo = it; showEditor = true },
-                    onCompleted = { vm.setCompleted(it, true) }, onDelete = vm::deleteTodo,
+                    onDelete = vm::deleteTodo,
                 )
                 1 -> StatsScreen(state.sessions, state.summary, padding, onHistory = { showHistory = true })
                 else -> SettingsScreen(vm, state.activeTimer == null, padding)

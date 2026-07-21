@@ -1,45 +1,57 @@
 package com.awesometodo.app.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
 import com.awesometodo.app.data.FocusSessionEntity
 import com.awesometodo.app.data.SessionOutcome
 import com.awesometodo.app.data.TimerMode
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @Composable
 internal fun HistoryScreen(
@@ -74,6 +86,9 @@ internal fun HistoryScreen(
                                 confirmDeleteId = session.id
                             }
                         },
+                        onClosed = {
+                            if (confirmDeleteId == session.id) confirmDeleteId = null
+                        },
                     )
                 }
             }
@@ -82,15 +97,28 @@ internal fun HistoryScreen(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun HistoryRow(
     session: FocusSessionEntity,
     confirmingDelete: Boolean,
     onDeleteClick: () -> Unit,
+    onClosed: () -> Unit,
 ) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { it != SwipeToDismissBoxValue.StartToEnd },
-    )
+    val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+    val targetActionWidth = if (confirmingDelete) 108.dp else 72.dp
+    val actionWidth by animateDpAsState(targetActionWidth, label = "history-delete-width")
+    val offset = remember(session.id) { Animatable(0f) }
+    val draggableState = rememberDraggableState { delta ->
+        scope.launch {
+            val maxReveal = with(density) { targetActionWidth.toPx() }
+            offset.snapTo((offset.value + delta).coerceIn(-maxReveal, 0f))
+        }
+    }
+    LaunchedEffect(confirmingDelete) {
+        if (confirmingDelete && offset.value < 0f) {
+            offset.animateTo(-with(density) { targetActionWidth.toPx() })
+        }
+    }
     val outcomeText = when (session.outcome) {
         SessionOutcome.NATURAL_COMPLETION -> "自然完成"
         SessionOutcome.EARLY_CREDITED -> "提前结束 · 已计入"
@@ -103,16 +131,14 @@ private fun HistoryRow(
         TimerMode.COUNT_UP -> "正向计时"
         TimerMode.UNTIMED -> "普通待办"
     }
-    SwipeToDismissBox(
-        state = dismissState,
-        enableDismissFromStartToEnd = false,
-        enableDismissFromEndToStart = true,
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)),
-        backgroundContent = {
+    Box(
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).clip(RoundedCornerShape(16.dp)),
+    ) {
+        if (offset.value < 0f) {
             Box(
-                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.error).clickable(onClick = onDeleteClick)
-                    .padding(horizontal = 18.dp),
-                contentAlignment = Alignment.CenterEnd,
+                modifier = Modifier.align(Alignment.CenterEnd).width(actionWidth).fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.error).clickable(onClick = onDeleteClick),
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     if (confirmingDelete) "确认删除" else "删除",
@@ -121,9 +147,25 @@ private fun HistoryRow(
                     fontWeight = FontWeight.Bold,
                 )
             }
-        },
-    ) {
+        }
         Card(
+            modifier = Modifier.offset { IntOffset(offset.value.roundToInt(), 0) }
+                .clickable(enabled = offset.value < 0f) {
+                    scope.launch {
+                        offset.animateTo(0f)
+                        onClosed()
+                    }
+                }
+                .draggable(
+                state = draggableState,
+                orientation = Orientation.Horizontal,
+                onDragStopped = {
+                    val reveal = with(density) { targetActionWidth.toPx() }
+                    val target = if (offset.value <= -reveal * .35f) -reveal else 0f
+                    offset.animateTo(target)
+                    if (target == 0f) onClosed()
+                },
+            ),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(1.dp),

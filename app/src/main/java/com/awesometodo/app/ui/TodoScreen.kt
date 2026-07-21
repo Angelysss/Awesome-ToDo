@@ -23,8 +23,11 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,13 +54,13 @@ import com.awesometodo.app.data.TodoEntity
 import java.time.LocalDate
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 internal fun TodoScreen(
     todos: List<TodoEntity>,
     sessions: List<FocusSessionEntity>,
     padding: PaddingValues,
     onStart: (TodoEntity) -> Unit,
     onEdit: (TodoEntity) -> Unit,
-    onCompleted: (TodoEntity) -> Unit,
     onDelete: (TodoEntity) -> Unit,
 ) {
     var selected by remember { mutableStateOf<TodoEntity?>(null) }
@@ -89,18 +92,29 @@ internal fun TodoScreen(
     }
 
     selected?.let { todo ->
-        AlertDialog(
+        ModalBottomSheet(
             onDismissRequest = { selected = null },
-            title = { Text(todo.title) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { onEdit(todo); selected = null }, Modifier.fillMaxWidth()) { Text("编辑") }
-                    if (!todo.isCompleted) OutlinedButton(onClick = { onCompleted(todo); selected = null }, Modifier.fillMaxWidth()) { Text("完成") }
-                    OutlinedButton(onClick = { deleteCandidate = todo; selected = null }, Modifier.fillMaxWidth()) { Text("删除") }
-                }
-            },
-            confirmButton = { TextButton(onClick = { selected = null }) { Text("关闭") } },
-        )
+        ) {
+            Text(
+                todo.title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+            )
+            ListItem(
+                headlineContent = { Text("编辑") },
+                supportingContent = { Text("修改名称、计时方式和卡片主题") },
+                trailingContent = { Text("›") },
+                modifier = Modifier.clickable { onEdit(todo); selected = null },
+            )
+            HorizontalDivider(Modifier.padding(horizontal = 20.dp))
+            ListItem(
+                headlineContent = { Text("删除", color = MaterialTheme.colorScheme.error) },
+                supportingContent = { Text("历史记录不会随待办一起删除") },
+                modifier = Modifier.clickable { deleteCandidate = todo; selected = null },
+            )
+            Box(Modifier.fillMaxWidth().height(16.dp))
+        }
     }
 
     deleteCandidate?.let { todo ->
@@ -131,7 +145,7 @@ private fun TodoCard(todo: TodoEntity, todayCount: Int, onStart: (TodoEntity) ->
                         drawContent()
                         if (todo.isCompleted) {
                             drawLine(
-                                color = Color.Black,
+                                color = Color.Black.copy(alpha = .45f),
                                 start = Offset(0f, size.height * .52f),
                                 end = Offset(size.width, size.height * .52f),
                                 strokeWidth = 1.5.dp.toPx(),

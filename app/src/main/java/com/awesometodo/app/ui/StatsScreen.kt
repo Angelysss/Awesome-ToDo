@@ -214,7 +214,7 @@ private fun FocusPieChart(slices: List<PieSlice>, onHistory: () -> Unit) {
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         FilledTonalButton(
             onClick = onHistory,
-            modifier = Modifier.width(132.dp).height(34.dp),
+            modifier = Modifier.width(120.dp).height(30.dp),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
         ) {
             Text("历史记录", style = MaterialTheme.typography.labelMedium)
