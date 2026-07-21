@@ -70,11 +70,13 @@ internal fun StatsScreen(
     var anchor by remember { mutableStateOf(today) }
     var customStart by remember { mutableStateOf(today.minusDays(29)) }
     var customEnd by remember { mutableStateOf(today) }
+    var monthAnchor by remember { mutableStateOf(YearMonth.from(today)) }
     var year by remember { mutableIntStateOf(today.year) }
 
     val (start, end) = rangeBounds(rangeMode, anchor, customStart, customEnd)
     val pie = Statistics.pieByTodo(sessions, start, end)
     val todaySessions = sessions.filter { it.countsTowardStats && it.endedLocalDate == today.toString() }
+    val monthlyPoints = Statistics.dateSeries(sessions, monthAnchor.atDay(1), monthAnchor.atEndOfMonth())
     val periodLabel = when (rangeMode) {
         RangeMode.DAY -> start.toString()
         RangeMode.WEEK, RangeMode.CUSTOM -> "$start 至 $end"
@@ -85,8 +87,8 @@ internal fun StatsScreen(
         GradientHeader("统计", "看见每一段投入带来的积累")
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 36.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            contentPadding = PaddingValues(12.dp, 12.dp, 12.dp, 24.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item {
                 SectionCard("累计专注") {
@@ -142,7 +144,19 @@ internal fun StatsScreen(
                         Text(periodLabel, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     FocusPieChart(pie)
-                    Button(onClick = onHistory, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text("历史记录") }
+                    Button(onClick = onHistory, modifier = Modifier.fillMaxWidth().height(42.dp)) { Text("历史记录") }
+                }
+            }
+            item {
+                SectionCard("月度专注统计 · ${monthAnchor.year}年${monthAnchor.monthValue}月") {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        TextButton(onClick = { monthAnchor = monthAnchor.minusMonths(1) }) { Text("‹ 上一月") }
+                        TextButton(
+                            onClick = { monthAnchor = monthAnchor.plusMonths(1) },
+                            enabled = monthAnchor < YearMonth.from(today),
+                        ) { Text("下一月 ›") }
+                    }
+                    FocusBarChart(monthlyPoints, "本月还没有有效专注")
                 }
             }
             item {
@@ -151,7 +165,7 @@ internal fun StatsScreen(
                         TextButton(onClick = { year-- }) { Text("‹ 上一年") }
                         TextButton(onClick = { year++ }, enabled = year < today.year) { Text("下一年 ›") }
                     }
-                    FocusBarChart(Statistics.yearSeries(sessions, year))
+                    FocusBarChart(Statistics.yearSeries(sessions, year), "这一年还没有有效专注")
                 }
             }
         }
@@ -171,13 +185,13 @@ private fun FocusPieChart(slices: List<PieSlice>) {
     val total = slices.sumOf { it.minutes }
     val centerColor = MaterialTheme.colorScheme.surface
     if (total == 0) {
-        Box(Modifier.fillMaxWidth().height(210.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
             Text("这个时段还没有有效专注", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         return
     }
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.size(210.dp)) {
+        Canvas(Modifier.size(150.dp)) {
             var startAngle = -90f
             slices.forEachIndexed { index, slice ->
                 val sweep = slice.minutes.toFloat() / total * 360f
@@ -191,7 +205,7 @@ private fun FocusPieChart(slices: List<PieSlice>) {
             Text("$total 分", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         }
     }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         slices.forEachIndexed { index, slice ->
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(10.dp).background(pieColors[index % pieColors.size], CircleShape))
@@ -204,17 +218,18 @@ private fun FocusPieChart(slices: List<PieSlice>) {
 }
 
 @Composable
-private fun FocusBarChart(points: List<ChartPoint>) {
+private fun FocusBarChart(points: List<ChartPoint>, emptyText: String) {
     val max = points.maxOfOrNull { it.minutes } ?: 0
     if (max == 0) {
-        Box(Modifier.fillMaxWidth().height(140.dp), contentAlignment = Alignment.Center) {
-            Text("这一年还没有有效专注", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(Modifier.fillMaxWidth().height(112.dp), contentAlignment = Alignment.Center) {
+            Text(emptyText, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         return
     }
-    Canvas(Modifier.fillMaxWidth().height(160.dp).padding(vertical = 12.dp)) {
-        val gap = 5.dp.toPx()
-        val barWidth = ((size.width - gap * 11) / 12).coerceAtLeast(3.dp.toPx())
+    Canvas(Modifier.fillMaxWidth().height(126.dp).padding(vertical = 8.dp)) {
+        val count = points.size.coerceAtLeast(1)
+        val gap = if (count > 20) 2.dp.toPx() else 5.dp.toPx()
+        val barWidth = ((size.width - gap * (count - 1)) / count).coerceAtLeast(2.dp.toPx())
         points.forEachIndexed { index, point ->
             val height = size.height * point.minutes / max.toFloat()
             drawRoundRect(
@@ -226,9 +241,9 @@ private fun FocusBarChart(points: List<ChartPoint>) {
         }
     }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text("1 月", style = MaterialTheme.typography.labelSmall)
+        Text(points.firstOrNull()?.label.orEmpty(), style = MaterialTheme.typography.labelSmall)
         Text("最高 $max 分钟", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-        Text("12 月", style = MaterialTheme.typography.labelSmall)
+        Text(points.lastOrNull()?.label.orEmpty(), style = MaterialTheme.typography.labelSmall)
     }
 }
 

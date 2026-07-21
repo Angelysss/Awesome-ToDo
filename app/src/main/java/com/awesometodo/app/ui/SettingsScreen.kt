@@ -9,13 +9,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -61,16 +61,9 @@ internal fun SettingsScreen(vm: AppViewModel, backupEnabled: Boolean, padding: P
         GradientHeader("设置", "管理数据与了解 Awesome ToDo")
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 28.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            contentPadding = PaddingValues(12.dp, 12.dp, 12.dp, 20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item {
-                SectionCard("关于与支持") {
-                    SettingAction("检查更新", "从 GitHub Releases 获取最新测试版本") { vm.checkForUpdates() }
-                    SettingAction("捐赠", "暂未开放") { vm.showMessage("捐赠功能暂未开放") }
-                    SettingAction("GitHub", "查看源码、版本说明与问题反馈") { openUrl(REPOSITORY_URL) }
-                }
-            }
             item {
                 SectionCard("数据备份") {
                     Text("备份包含待办、历史记录和设置；恢复会整体替换当前数据。", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -90,7 +83,16 @@ internal fun SettingsScreen(vm: AppViewModel, backupEnabled: Boolean, padding: P
                 }
             }
             item {
-                Box(Modifier.fillMaxWidth().padding(top = 28.dp), contentAlignment = Alignment.Center) {
+                SectionCard("关于与支持") {
+                    SettingAction("检查更新", "从 GitHub Releases 获取最新测试版本") { vm.checkForUpdates() }
+                    HorizontalDivider()
+                    SettingAction("捐赠", "暂未开放") { vm.showMessage("捐赠功能暂未开放") }
+                    HorizontalDivider()
+                    SettingAction("GitHub", "查看源码、版本说明与问题反馈") { openUrl(REPOSITORY_URL) }
+                }
+            }
+            item {
+                Box(Modifier.fillMaxWidth().padding(top = 16.dp), contentAlignment = Alignment.Center) {
                     Text(
                         "Awesome ToDo v${BuildConfig.VERSION_NAME}",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

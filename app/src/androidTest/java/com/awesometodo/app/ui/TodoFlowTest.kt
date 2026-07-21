@@ -18,4 +18,9 @@ class TodoFlowTest {
         rule.onNodeWithText("保存").performClick()
         rule.onNodeWithText("完成测试").assertExists()
     }
+
+    @Test fun statisticsKeepsMonthlySection() {
+        rule.onNodeWithText("统计").performClick()
+        rule.onNodeWithText("月度专注统计", substring = true).assertExists()
+    }
 }

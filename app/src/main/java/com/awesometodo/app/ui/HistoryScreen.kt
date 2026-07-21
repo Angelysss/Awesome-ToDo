@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -40,8 +41,8 @@ internal fun HistoryScreen(sessions: List<FocusSessionEntity>, onBack: () -> Uni
             }
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 32.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(12.dp, 12.dp, 12.dp, 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(sessions, key = { it.id }) { HistoryRow(it) }
             }
@@ -63,8 +64,12 @@ private fun HistoryRow(session: FocusSessionEntity) {
         TimerMode.COUNT_UP -> "正向计时"
         TimerMode.UNTIMED -> "普通待办"
     }
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .55f))) {
-        Column(Modifier.fillMaxWidth().padding(15.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(1.dp),
+    ) {
+        Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(session.todoTitle, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), maxLines = 1)
                 Text(

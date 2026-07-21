@@ -54,7 +54,6 @@ internal fun TodoScreen(
     sessions: List<FocusSessionEntity>,
     padding: PaddingValues,
     onStart: (TodoEntity) -> Unit,
-    onAdd: () -> Unit,
     onEdit: (TodoEntity) -> Unit,
     onCompleted: (TodoEntity) -> Unit,
     onDelete: (TodoEntity) -> Unit,
@@ -65,15 +64,15 @@ internal fun TodoScreen(
     val today = LocalDate.now().toString()
 
     Column(Modifier.fillMaxSize().padding(padding)) {
-        GradientHeader("待办", "把注意力留给真正重要的事", "＋", onAdd)
+        GradientHeader("待办", "把注意力留给真正重要的事")
         if (sorted.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
                 Text("点击右上角 ＋ 创建第一项待办", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 32.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(12.dp, 12.dp, 12.dp, 76.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(sorted, key = { it.id }) { todo ->
                     val count = sessions.count { session ->
@@ -116,18 +115,20 @@ internal fun TodoScreen(
 private fun TodoCard(todo: TodoEntity, todayCount: Int, onStart: (TodoEntity) -> Unit, onMenu: () -> Unit) {
     val colors = cardThemes[todo.themeId.coerceIn(0, cardThemes.lastIndex)]
     Box(
-        Modifier.fillMaxWidth().height(118.dp).clip(RoundedCornerShape(22.dp))
-            .background(Brush.linearGradient(colors)).clickable(onClick = onMenu).padding(horizontal = 18.dp, vertical = 14.dp)
+        Modifier.fillMaxWidth().height(90.dp).clip(RoundedCornerShape(16.dp))
+            .background(Brush.linearGradient(colors)).clickable(onClick = onMenu).padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
         Column(Modifier.fillMaxSize()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    todo.title, color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
+                    todo.title, color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
                     textDecoration = if (todo.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                     modifier = Modifier.weight(1f), maxLines = 1,
                 )
                 Button(
                     onClick = { onStart(todo) },
+                    modifier = Modifier.height(36.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = colors.first()),
                 ) { Text("开始") }
             }
@@ -166,7 +167,7 @@ internal fun TodoEditorDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (todo == null) "添加待办" else "编辑待办") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(title, { title = it.take(60) }, label = { Text("待办名称") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf(TimerMode.COUNTDOWN to "倒计时", TimerMode.COUNT_UP to "正向计时", TimerMode.UNTIMED to "不计时").forEach { (value, label) ->
@@ -197,7 +198,7 @@ internal fun TodoEditorDialog(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     cardThemes.forEachIndexed { index, colors ->
                         Box(
-                            Modifier.size(if (theme == index) 42.dp else 34.dp).clip(CircleShape)
+                            Modifier.size(if (theme == index) 34.dp else 28.dp).clip(CircleShape)
                                 .background(Brush.linearGradient(colors)).clickable { theme = index }
                         )
                     }

@@ -59,20 +59,20 @@ internal fun TimerScreen(active: ActiveTimerEntity, onPause: () -> Unit, onResum
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
-            Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp),
+            Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(if (active.timerMode == TimerMode.COUNT_UP) "正向计时" else "正在专注", color = progressColor, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(12.dp))
             Text(active.todoTitle, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
             Spacer(Modifier.weight(.5f))
-            Box(Modifier.size(270.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(220.dp), contentAlignment = Alignment.Center) {
                 Canvas(Modifier.fillMaxSize()) {
                     drawCircle(trackColor, style = Stroke(18.dp.toPx()))
                     drawArc(progressColor, -90f, 360f * progress.coerceIn(0f, 1f), false, style = Stroke(18.dp.toPx(), cap = StrokeCap.Round))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(formatTimer(display), fontSize = 48.sp, fontWeight = FontWeight.Bold)
+                    Text(formatTimer(display), fontSize = 40.sp, fontWeight = FontWeight.Bold)
                     Text(
                         if (active.status == TimerStatus.PAUSED) "已暂停"
                         else if (active.timerMode == TimerMode.COUNT_UP) "已专注" else "保持专注",
@@ -80,15 +80,15 @@ internal fun TimerScreen(active: ActiveTimerEntity, onPause: () -> Unit, onResum
                     )
                 }
             }
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(12.dp))
             Text(creditHint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.weight(.5f))
             Button(
                 onClick = if (active.status == TimerStatus.PAUSED) onResume else onPause,
-                modifier = Modifier.fillMaxWidth().height(54.dp),
+                modifier = Modifier.fillMaxWidth().height(46.dp),
             ) { Text(if (active.status == TimerStatus.PAUSED) "继续" else "暂停") }
             Spacer(Modifier.height(10.dp))
-            OutlinedButton(onClick = { showEndMenu = true }, modifier = Modifier.fillMaxWidth().height(54.dp)) { Text("结束专注") }
+            OutlinedButton(onClick = { showEndMenu = true }, modifier = Modifier.fillMaxWidth().height(46.dp)) { Text("结束专注") }
         }
     }
 

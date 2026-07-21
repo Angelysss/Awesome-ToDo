@@ -33,16 +33,16 @@ internal val cardThemes = listOf(
 internal fun GradientHeader(title: String, subtitle: String, action: String? = null, onAction: (() -> Unit)? = null) {
     Row(
         Modifier.fillMaxWidth().background(Brush.linearGradient(listOf(Color(0xFF147D9E), Color(0xFF56B4D3))))
-            .statusBarsPadding().padding(horizontal = 20.dp, vertical = 20.dp),
+            .statusBarsPadding().padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column {
-            Text(title, color = Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text(subtitle, color = Color.White.copy(alpha = .82f))
+            Text(title, color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(subtitle, color = Color.White.copy(alpha = .82f), style = MaterialTheme.typography.bodySmall)
         }
         Spacer(Modifier.weight(1f))
         if (action != null && onAction != null) {
-            TextButton(onClick = onAction) { Text(action, color = Color.White, style = MaterialTheme.typography.headlineSmall) }
+            TextButton(onClick = onAction) { Text(action, color = Color.White, style = MaterialTheme.typography.labelLarge) }
         }
     }
 }
@@ -50,11 +50,11 @@ internal fun GradientHeader(title: String, subtitle: String, action: String? = n
 @Composable
 internal fun SectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     Card(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp),
+        elevation = CardDefaults.cardElevation(1.dp),
     ) {
-        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(title, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
             content()
         }
