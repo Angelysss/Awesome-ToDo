@@ -11,10 +11,16 @@ import com.awesometodo.app.backup.BackupManager
 import com.awesometodo.app.data.ActiveTimerEntity
 import com.awesometodo.app.data.FocusSessionEntity
 import com.awesometodo.app.data.TodoEntity
+import com.awesometodo.app.data.TimerMode
 import com.awesometodo.app.stats.Statistics
 import com.awesometodo.app.stats.SummaryStats
 import com.awesometodo.app.timer.FocusTimerService
+import com.awesometodo.app.BuildConfig
+import com.awesometodo.app.update.UpdateChecker
+import com.awesometodo.app.update.UpdateResult
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -32,15 +38,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as AwesomeTodoApplication
     private val repository = app.repository
     private val backup = BackupManager(app, repository, app.settingsRepository)
+    private val updateChecker = UpdateChecker()
 
     val messages = MutableSharedFlow<String>(extraBufferCapacity = 4)
+    private val _updateResult = MutableStateFlow<UpdateResult?>(null)
+    val updateResult = _updateResult.asStateFlow()
 
     val uiState: StateFlow<AppUiState> = combine(repository.todos, repository.sessions, repository.activeTimer) { todos, sessions, active ->
         AppUiState(todos, sessions, active, Statistics.summary(sessions))
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppUiState())
 
-    fun saveTodo(id: String?, title: String, minutes: Int, themeId: Int) = viewModelScope.launch {
-        runCatching { repository.saveTodo(id, title, minutes, themeId) }
+    fun saveTodo(id: String?, title: String, minutes: Int, themeId: Int, timerMode: TimerMode) = viewModelScope.launch {
+        runCatching { repository.saveTodo(id, title, minutes, themeId, timerMode) }
             .onFailure { messages.emit(it.message ?: "保存失败") }
     }
 
@@ -48,6 +57,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun deleteTodo(todo: TodoEntity) = viewModelScope.launch { repository.deleteTodo(todo) }
 
     fun startTimer(todo: TodoEntity) = viewModelScope.launch {
+        if (todo.timerMode == TimerMode.UNTIMED) {
+            repository.completeUntimed(todo)
+            return@launch
+        }
         repository.startTimer(todo)
         ContextCompat.startForegroundService(app, FocusTimerService.startIntent(app))
     }
@@ -78,4 +91,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             .onSuccess { messages.emit("备份已恢复") }
             .onFailure { messages.emit(it.message ?: "恢复失败") }
     }
+
+    fun checkForUpdates() = viewModelScope.launch {
+        messages.emit("正在检查更新…")
+        _updateResult.value = updateChecker.check(BuildConfig.VERSION_NAME)
+    }
+
+    fun clearUpdateResult() { _updateResult.value = null }
+    fun showMessage(message: String) { messages.tryEmit(message) }
 }
